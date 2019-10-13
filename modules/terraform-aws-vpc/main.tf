@@ -18,6 +18,7 @@ resource "aws_subnet" "public" {
   count = "${length(var.vpc_public_subnet_cidr_block)}"
 
   vpc_id                  = "${aws_vpc.vpc_new.id}"
+  availability_zone       = "${element(var.azs, count.index)}"
   cidr_block              = "${element(var.vpc_public_subnet_cidr_block, count.index)}"
   map_public_ip_on_launch = "${var.vpc_subnet_map_public_ip_on_launch}"
 
@@ -38,13 +39,14 @@ resource "aws_subnet" "private" {
 
 resource "aws_eip" "eip" {
   count = "${local.nat_gateway_count}"
-#  vpc   = "${aws_vpc.vpc_new.id}"
+
+  #  vpc   = "${aws_vpc.vpc_new.id}"
 }
 
 ### NAT GATEWAY
 
 resource "aws_nat_gateway" "nat_gw" {
-  count = "${length(var.vpc_public_subnet_cidr_block) * (local.nat_gateway_count) > 0 ? local.nat_gateway_count : 0}"
+  count         = "${length(var.vpc_public_subnet_cidr_block) * (local.nat_gateway_count) > 0 ? local.nat_gateway_count : 0}"
   subnet_id     = "${element(aws_subnet.public.*.id, count.index)}"
   allocation_id = "${element(aws_eip.eip.*.id, count.index)}"
 

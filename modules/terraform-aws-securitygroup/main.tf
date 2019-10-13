@@ -7,7 +7,7 @@ resource "aws_security_group" "sg_new" {
 }
 
 resource "aws_security_group_rule" "custom_rules" {
-  count             = "${length(var.custom_security_rules) > 0 ? 1 : 0}"
+  count             = "${length(var.custom_security_rules) > 0 ? length(var.custom_security_rules) : 0}"
   type              = "${lookup(var.custom_security_rules[count.index], "type")}"
   from_port         = "${lookup(var.custom_security_rules[count.index], "from_port")}"
   to_port           = "${lookup(var.custom_security_rules[count.index], "to_port")}"

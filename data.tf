@@ -1,5 +1,4 @@
-data "aws_ami" "rhel" {
-  count = "${var.cloud_provider == "aws" ? 1 : 0}"
+data "aws_ami" "ami" {
   most_recent = true
 
   filter {
@@ -14,5 +13,3 @@ data "aws_ami" "rhel" {
 
   owners = ["309956199498"] # Red Hat
 }
-
-
