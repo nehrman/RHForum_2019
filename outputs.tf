@@ -53,18 +53,17 @@ output "aws_sg_id_alb" {
   value       = "${module.aws_sg_alb.sg_id}"
 }
 
-#output "lb_alb_id" {
-#  description = "The IDs of Application Load Balancer"
-#  value       = "${module.aws_alb.lb_alb_id}"
-#}
-#
-#output "lb_alb_dns_name" {
-#  description = "The DNS Name of Application Load Balancer"
-#  value       = "${module.aws_alb.lb_alb_dns_name}"
-#}
-#
-#output "lb_alb_zone_id" {
-#  description = "The Zone ID of Application Load Balancer"
-#  value       = "${module.aws_alb.lb_alb_zone_id}"
-#}
+output "lb_alb_id" {
+  description = "The IDs of Application Load Balancer"
+  value       = "${module.aws_alb.lb_alb_id}"
+}
 
+output "lb_alb_dns_name" {
+  description = "The DNS Name of Application Load Balancer"
+  value       = "${module.aws_alb.lb_alb_dns_name}"
+}
+
+output "lb_alb_zone_id" {
+  description = "The Zone ID of Application Load Balancer"
+  value       = "${module.aws_alb.lb_alb_zone_id}"
+}

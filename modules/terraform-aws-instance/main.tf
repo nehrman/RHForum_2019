@@ -13,9 +13,10 @@ resource "aws_instance" "vm" {
     delete_on_termination = "${lookup(var.root_block_device[count.index], "delete_on_termination", "")}"
     volume_type           = "${lookup(var.root_block_device[count.index], "volume_type", "")}"
     volume_size           = "${lookup(var.root_block_device[count.index], "volume_size", "")}"
- #   iops                  = "${lookup(var.root_block_device[count.index], "iops", "")}"
-    encrypted             = "${lookup(var.root_block_device[count.index], "encrypted", "")}"
-    kms_key_id            = "${lookup(var.root_block_device[count.index], "kms_key_id", "")}"
+
+    #   iops                  = "${lookup(var.root_block_device[count.index], "iops", "")}"
+    encrypted  = "${lookup(var.root_block_device[count.index], "encrypted", "")}"
+    kms_key_id = "${lookup(var.root_block_device[count.index], "kms_key_id", "")}"
   }
 
   ebs_block_device {
@@ -24,12 +25,13 @@ resource "aws_instance" "vm" {
     snapshot_id           = "${lookup(var.ebs_block_device[count.index], "snapshot_id", "")}"
     volume_type           = "${lookup(var.ebs_block_device[count.index], "volume_type", "")}"
     volume_size           = "${lookup(var.ebs_block_device[count.index], "volume_size", "")}"
-  #  iops                  = "${lookup(var.ebs_block_device[count.index], "iops", "")}"
-    encrypted             = "${lookup(var.ebs_block_device[count.index], "encrypted", "")}"
-    kms_key_id            = "${lookup(var.ebs_block_device[count.index], "kms_key_id", "")}"
+
+    #  iops                  = "${lookup(var.ebs_block_device[count.index], "iops", "")}"
+    encrypted  = "${lookup(var.ebs_block_device[count.index], "encrypted", "")}"
+    kms_key_id = "${lookup(var.ebs_block_device[count.index], "kms_key_id", "")}"
   }
 
-  tags = "${var.tags}"
+  tags = "${merge(var.tags, var.instance_tags)}"
 
   volume_tags = "${var.tags}"
 }

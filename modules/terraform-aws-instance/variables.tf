@@ -81,9 +81,17 @@ variable "tags" {
   type        = "map"
 
   default = {
-    "Name"        = "RHForum2019"
     "owner"       = "nehrman"
     "purpose"     = "demo"
     "environment" = "production"
+  }
+}
+
+variable "instance_tags" {
+  description = "Specific tags used by instances"
+  type        = "map"
+
+  default = {
+    "Name" = "RHForum2019"
   }
 }

@@ -1,9 +1,9 @@
-resource "aws_route53_record" "vault_route53_records" {
-  count = "${var.vault_vm_count * (var.cloud_provider == "aws" ? 1 : 0)}"
+resource "aws_route53_record" "new" {
+  count = "${length(var.instance_name) > 0 ? length(var.instance_name) : 0}"
 
-  zone_id = "${aws_route53_zone.ec2_route53_zone.zone_id}"
-  name    = "${lookup(aws_instance.vault_vm.*.tags[count.index], "Name")}"
-  type    = "A"
-  ttl     = "300"
-  records = ["${element(aws_instance.vault_vm.*.public_ip, count.index)}"]
+  zone_id = "${var.zone_id}"
+  name    = "${element(var.instance_name, count.index)}"
+  type    = "${var.record_type}"
+  ttl     = "${var.record_ttl}"
+  records = ["${element(var.instance_ip, count.index)}"]
 }
