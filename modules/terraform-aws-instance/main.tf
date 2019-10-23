@@ -8,6 +8,7 @@ resource "aws_instance" "vm" {
   vpc_security_group_ids      = ["${var.vpc_security_group_ids}"]
   key_name                    = "${var.key_name}"
   monitoring                  = "${var.monitoring}"
+  user_data                   = "${var.user_data}"
 
   root_block_device {
     delete_on_termination = "${lookup(var.root_block_device[count.index], "delete_on_termination", "")}"

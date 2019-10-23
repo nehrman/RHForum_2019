@@ -1,10 +1,11 @@
 [tower]
-${tower_hosts_def}
+${tower_hosts_def} ansible_connection=local
 
 [instances_group_isolated]
 ${isolated_hosts_def}
 
 [database]
+${postgresql_hosts_def}
 
 [all:vars]
 admin_password='${tower_setup_admin_password}'
@@ -23,4 +24,4 @@ rabbitmq_password='${tower_setup_rabbitmq_pass}'
 rabbitmq_cookie=cookiemonster
 
 # Needs to be true for fqdns and ip addresses
-rabbitmq_use_long_name=false
+rabbitmq_use_long_name=true

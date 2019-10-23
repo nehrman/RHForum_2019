@@ -16,6 +16,18 @@ variable "listener_protocol" {
   default     = "HTTP"
 }
 
+variable "listener_ssl_policy" {
+  description = "Defines the SSL policy when HTTPS is used as protocol"
+  type        = "string"
+  default     = ""
+}
+
+variable "listener_certificate_arn" {
+  description = "The ARN of the certificate used for HTTPS"
+  type        = "string"
+  default     = ""
+}
+
 variable "target_group_arn" {
   description = "The ARN of the Target Group"
   type        = "string"

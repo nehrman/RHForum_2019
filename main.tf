@@ -1,7 +1,7 @@
 module "aws_vpc" {
   source                        = "modules/terraform-aws-vpc"
   name                          = "test"
-  azs                           = ["eu-central-1a", "eu-central-1b"]
+  azs                           = ["eu-west-1a", "eu-west-1b", "eu-west-1c" ]
   internet_gateway              = "true"
   single_nat_gateway            = "true"
   vpc_cidr_block                = "10.0.0.0/16"
@@ -44,10 +44,10 @@ module "aws_sg_alb" {
     },
     {
       "type"        = "ingress"
-      "from_port"   = "81"
-      "to_port"     = "81"
+      "from_port"   = "443"
+      "to_port"     = "443"
       "protocol"    = "tcp"
-      "description" = "HTTP Access to Tower"
+      "description" = "HTTPS Access to Tower"
     },
   ]
 }
@@ -106,6 +106,13 @@ module "aws_sg_vault" {
       "protocol"    = "tcp"
       "description" = "HTTP Access to Vault"
     },
+    {
+      "type"        = "ingress"
+      "from_port"   = "22"
+      "to_port"     = "22"
+      "protocol"    = "tcp"
+      "description" = "SSH Access to Vault"
+    },
   ]
 }
 
@@ -117,10 +124,12 @@ module "aws_instance_vault" {
     "Name" = "vault"
   }
 
-  vm_count               = "1"
-  vpc_security_group_ids = ["${module.aws_sg_vault.sg_id}"]
-  subnet_id              = "${module.aws_vpc.private_subnets[0]}"
-  key_name               = "${module.aws_key_pair.key_name}"
+  vm_count                    = "1"
+  vpc_security_group_ids      = ["${module.aws_sg_vault.sg_id}"]
+  subnet_id                   = "${module.aws_vpc.private_subnets[0]}"
+  key_name                    = "${module.aws_key_pair.key_name}"
+  user_data                   = "${file("files/vault_single_server-ssh-ca.sh")}"
+  associate_public_ip_address = false
 }
 
 module "aws_target_group_vault" {
@@ -171,6 +180,13 @@ module "aws_sg_tower" {
       "protocol"    = "tcp"
       "description" = "HTTPS Access to Tower"
     },
+    {
+      "type"        = "ingress"
+      "from_port"   = "22"
+      "to_port"     = "22"
+      "protocol"    = "tcp"
+      "description" = "SSH Access to Vault"
+    },
   ]
 }
 
@@ -182,10 +198,30 @@ module "aws_instance_tower" {
     "Name" = "tower"
   }
 
-  vm_count               = "1"
-  vpc_security_group_ids = ["${module.aws_sg_tower.sg_id}"]
-  subnet_id              = "${module.aws_vpc.private_subnets[0]}"
-  key_name               = "${module.aws_key_pair.key_name}"
+  vm_count                    = "1"
+  vpc_security_group_ids      = ["${module.aws_sg_tower.sg_id}"]
+  subnet_id                   = "${module.aws_vpc.private_subnets[0]}"
+  key_name                    = "${module.aws_key_pair.key_name}"
+  associate_public_ip_address = false
+}
+
+module "aws_acm_certificate_tower" {
+  source                = "modules/terraform-aws-acm-certificate"
+  acm_domain_name       = "*.demoaws.my-v-world.com"
+  acm_validation_method = "DNS"
+}
+
+module "aws_record_certs_tower" {
+  source        = "modules/terraform-aws-route53-records"
+  zone_id       = "${module.aws_route53.dns_zone_id[0]}"
+  instance_name = ["${module.aws_acm_certificate_tower.aws_acm_resource_record_name}"]
+  instance_ip   = ["${module.aws_acm_certificate_tower.aws_acm_resource_record_value}"]
+  record_type   = "${module.aws_acm_certificate_tower.aws_acm_resource_record_type}"
+}
+
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn = "${module.aws_acm_certificate_tower.aws_acm_cert_arn}"
+  validation_record_fqdns = ["${module.aws_record_certs_tower.record_fqdn}"]
 }
 
 module "aws_target_group_tower" {
@@ -194,17 +230,29 @@ module "aws_target_group_tower" {
 
   target_group_port = "443"
 
-  target_group_protocol = "HTTP"
+  target_group_protocol = "HTTPS"
   vpc_id                = "${module.aws_vpc.vpc_id}"
   target_type           = "instance"
   instance_id           = ["${module.aws_instance_tower.instance_id}"]
 }
 
 module "aws_listener_tower" {
-  source            = "modules/terraform-aws-elbv2-listener"
-  load_balancer_arn = "${module.aws_alb.lb_alb_arn[0]}"
-  listener_port     = "81"
-  listener_protocol = "HTTP"
-  target_group_arn  = "${module.aws_target_group_tower.target_group_arn[0]}"
-  action_type       = "forward"
+  source                   = "modules/terraform-aws-elbv2-listener"
+  load_balancer_arn        = "${module.aws_alb.lb_alb_arn[0]}"
+  listener_port            = "443"
+  listener_protocol        = "HTTPS"
+  listener_ssl_policy      = "ELBSecurityPolicy-2016-08"
+  listener_certificate_arn = "${module.aws_acm_certificate_tower.aws_acm_cert_arn}"
+  target_group_arn         = "${module.aws_target_group_tower.target_group_arn[0]}"
+  action_type              = "forward"
 }
+
+module "aws_tower_deployment" {
+  source = "modules/terraform-ansible-tower"
+
+  aws_tower_hosts       = "${module.aws_instance_tower.instance_private_dns}"
+  aws_bastion_host      = "${module.aws_instance_bastion.instance_public_ip}"
+  global_admin_username = "ec2-user"
+  id_rsa_path           = "/users/nicolas/.ssh/id_rsa_az"
+}
+

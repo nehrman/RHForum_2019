@@ -39,8 +39,6 @@ resource "aws_subnet" "private" {
 
 resource "aws_eip" "eip" {
   count = "${local.nat_gateway_count}"
-
-  #  vpc   = "${aws_vpc.vpc_new.id}"
 }
 
 ### NAT GATEWAY

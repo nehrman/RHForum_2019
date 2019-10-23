@@ -10,6 +10,12 @@ variable "ami" {
   default     = ""
 }
 
+variable "user_data" {
+  description = "User Data used to configure the instance"
+  type        = "string"
+  default     = ""
+}
+
 variable "instance_type" {
   description = "Defines the instance type"
   type        = "string"

@@ -1,58 +1,83 @@
 ##
-## here we create the list of available Consul Client nodes
-## to be used as input for the ansible_groups template
+## here we create the list of available Tower Nodes
+## to be used as input for the Inventory template
 ##
 
-data "template_file" "ansible_consul_server_hosts" {
-  count      = "${var.az_consul_nb_instance}"
-  template   = "${file("${path.module}/templates/ansible_consul_server_hosts.tpl")}"
-  depends_on = ["azurerm_virtual_machine.consul", "azurerm_virtual_machine.vault"]
+data "template_file" "ansible_tower_hosts" {
+  count    = "${length(var.aws_tower_hosts)}"
+  template = "${file("${path.module}/templates/tower_nodes.tpl")}"
 
   vars {
-    consul_node_server_name = "${element(azurerm_virtual_machine.consul.*.name, count.index)}"
-    consul_server_role      = "${element(azurerm_virtual_machine.consul.*.name, count.index) == element(azurerm_virtual_machine.consul.*.name, 0) ? var.consul_role_bootstrap : var.consul_role_server}"
-    consul_bind_address     = "${element(azurerm_network_interface.consul.*.private_ip_address, count.index)}"
+    tower_hosts_name = "${element(var.aws_tower_hosts, count.index)}"
   }
 }
 
 ##
-## here we create the list of available Consul Client nodes
-## to be used as input for the ansible_groups template
+## here we create the list of available Tower Nodes
+## to be used as input for the Hosts template
 ##
-data "template_file" "ansible_consul_client_hosts" {
-  count      = "${var.az_vault_nb_instance}"
-  template   = "${file("${path.module}/templates/ansible_consul_client_hosts.tpl")}"
-  depends_on = ["azurerm_virtual_machine.vault"]
+
+data "template_file" "ansible_tower_host" {
+  count    = "${length(var.aws_tower_hosts)}"
+  template = "${file("${path.module}/templates/tower_nodes.tpl")}"
 
   vars {
-    consul_client_node_name = "${element(azurerm_virtual_machine.vault.*.name, count.index)}"
+    tower_hosts_name = "${element(var.aws_tower_hosts, 0)}"
   }
 }
 
 ##
-## here we create the list of available Vault nodes
-## to be used as input for the ansible_groups template
+## here we create the list of available Isolated Nodes
+## to be used as input for the Inventory template
 ##
-data "template_file" "ansible_vault_hosts" {
-  count      = "${var.az_vault_nb_instance}"
-  template   = "${file("${path.module}/templates/ansible_vault_hosts.tpl")}"
-  depends_on = ["azurerm_virtual_machine.vault"]
+data "template_file" "ansible_isolated_hosts" {
+  count    = "${length(var.aws_isolated_hosts)}"
+  template = "${file("${path.module}/templates/isolated_nodes.tpl")}"
 
   vars {
-    vault_node_name = "${element(azurerm_virtual_machine.vault.*.name, count.index)}"
+    isolated_hosts_name = "${element(var.aws_isolated_hosts, count.index)}"
   }
 }
 
 ##
-## here we assign Consul and Vault Nodes to the right GROUP
+## here we create the list of available Isolated Nodes
+## to be used as input for the Inventory template
+##
+data "template_file" "ansible_postgresql_hosts" {
+  count    = "${length(var.aws_postgresql_hosts)}"
+  template = "${file("${path.module}/templates/postgresql_nodes.tpl")}"
+
+  vars {
+    postgresql_hosts_name = "${element(var.aws_postgresql_hosts, count.index)}"
+  }
+}
+
+##
+## here we assign Tower, Isolated and Postgresql nodes to the right GROUP
 ## 
 data "template_file" "ansible_groups" {
-  template = "${file("${path.module}/templates/ansible_groups.tpl")}"
+  template = "${file("${path.module}/templates/inventory.tpl")}"
 
   vars {
-    consul_server_hosts_def = "${join("",data.template_file.ansible_consul_server_hosts.*.rendered)}"
-    vault_hosts_def         = "${join("",data.template_file.ansible_vault_hosts.*.rendered)}"
-    consul_client_hosts_def = "${join("",data.template_file.ansible_consul_client_hosts.*.rendered)}"
+    tower_hosts_def            = "${join("",data.template_file.ansible_tower_hosts.*.rendered)}"
+    isolated_hosts_def         = "${join("",data.template_file.ansible_isolated_hosts.*.rendered)}"
+    postgresql_hosts_def       = "${join("",data.template_file.ansible_postgresql_hosts.*.rendered)}"
+    tower_setup_admin_password = "${ var.tower_setup_admin_password }"
+    tower_setup_pg_database    = "${ var.tower_setup_pg_database }"
+    tower_setup_pg_username    = "${ var.tower_setup_pg_username }"
+    tower_setup_pg_password    = "${ var.tower_setup_pg_password }"
+    tower_setup_rabbitmq_pass  = "${ var.tower_setup_rabbitmq_pass }"
+  }
+}
+
+##
+## here we assign Tower, Isolated and Postgresql nodes to the right GROUP
+## 
+data "template_file" "ansible_tower_group" {
+  template = "${file("${path.module}/templates/hosts.tpl")}"
+
+  vars {
+    tower_host_def = "${join("",data.template_file.ansible_tower_host.*.rendered)}"
   }
 }
 
@@ -68,12 +93,22 @@ resource "local_file" "ansible_inventory" {
 }
 
 ##
+## here we write the rendered "ansible_groups" template into a local file
+## on the Terraform exec environment (the shell where the terraform binary runs)
+##
+resource "local_file" "ansible_host" {
+  depends_on = ["data.template_file.ansible_tower_group"]
+
+  content  = "${data.template_file.ansible_tower_group.rendered}"
+  filename = "${path.module}/ansible/hosts"
+}
+
+##
 ## here we create the Ansible Configuration 
 ## to be used by Ansible 
 ##
 data "template_file" "ansible_cfg" {
-  template   = "${file("${path.module}/templates/ansible_cfg.tpl")}"
-  depends_on = ["azurerm_virtual_machine.vault"]
+  template = "${file("${path.module}/templates/ansible_cfg.tpl")}"
 
   vars {
     ansible_user = "${var.global_admin_username}"
@@ -97,8 +132,7 @@ resource "local_file" "ansible_cfg" {
 ##
 data "template_file" "ansible_site" {
   #  count      = "${var.az_consul_nb_instance}"
-  template   = "${file("${path.module}/templates/site.tpl")}"
-  depends_on = ["azurerm_virtual_machine.consul", "azurerm_virtual_machine.vault"]
+  template = "${file("${path.module}/templates/site.tpl")}"
 
   vars {
     setup_version = "${var.tower_setup_version}"
@@ -134,7 +168,7 @@ resource "null_resource" "ansible_copy" {
 
     connection {
       type        = "ssh"
-      host        = "${azurerm_public_ip.bastion.ip_address}"
+      host        = "${var.aws_bastion_host[0]}"
       user        = "${var.global_admin_username}"
       private_key = "${file(var.id_rsa_path)}"
       insecure    = true
@@ -153,8 +187,8 @@ resource "null_resource" "ansible_ssh_id" {
 
     connection {
       type        = "ssh"
-      host        = "${azurerm_public_ip.bastion.ip_address}"
-      user        = "${var.global_admin_username}"
+      host        = "${var.aws_bastion_host[0]}"
+      user        = "${ var.global_admin_username }"
       private_key = "${file(var.id_rsa_path)}"
       insecure    = true
     }
@@ -162,7 +196,7 @@ resource "null_resource" "ansible_ssh_id" {
 }
 
 resource "null_resource" "ansible_run" {
-  depends_on = ["null_resource.ansible_ssh_id", "null_resource.ansible_copy", "local_file.ansible_inventory", "azurerm_virtual_machine.bastion", "azurerm_virtual_machine.vault", "azurerm_virtual_machine.consul", "azurerm_virtual_machine_extension.bastion"]
+  depends_on = ["null_resource.ansible_ssh_id", "null_resource.ansible_copy", "local_file.ansible_inventory"]
 
   triggers {
     always_run = "${timestamp()}"
@@ -170,7 +204,7 @@ resource "null_resource" "ansible_run" {
 
   connection {
     type        = "ssh"
-    host        = "${azurerm_public_ip.bastion.ip_address}"
+    host        = "${var.aws_bastion_host[0]}"
     user        = "${var.global_admin_username}"
     private_key = "${file(var.id_rsa_path)}"
     insecure    = true
@@ -179,8 +213,8 @@ resource "null_resource" "ansible_run" {
   provisioner "remote-exec" {
     inline = [
       "chmod 0600 ~/.ssh/id_rsa",
-      "git clone https://github.com/nehrman/ansible-vault ~/roles/ansible-vault",
-      "git clone https://github.com/nehrman/ansible-consul ~/roles/ansible-consul",
+      "sudo yum-config-manager --enable rhui-REGION-rhel-server-extras",
+      "sudo yum install -y ansible",
       "sleep 30 && ansible-playbook -i ~/hosts ~/site.yml ",
     ]
   }

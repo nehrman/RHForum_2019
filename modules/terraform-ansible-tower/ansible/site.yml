@@ -15,22 +15,22 @@
 
     - name: Download Ansible Tower 
       unarchive: 
-        src: "https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-${setup_version}.tar.gz"
-        dest: "${setup_dir}"
-        creates: "${setup_dir}/ansible-tower-setup-bundle-${setup_version}"
+        src: "https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-3.5.3-1.el7.tar.gz"
+        dest: "."
+        creates: "./ansible-tower-setup-bundle-3.5.3-1.el7"
         remote_src: true
       run_once: yes
     
     - name: import Ansible Tower Configuration
       copy: 
         src: "./inventory"
-        dest: "${setup_dir }/ansible-tower-setup-bundle-${setup_version}/inventory"
+        dest: "./ansible-tower-setup-bundle-3.5.3-1.el7/inventory"
         force: yes
       run_once: yes
     
     - name: Patch Ansible Tower Roles to make it work on AWS EC2 with rhui
       lineinfile: 
-        dest: "${setup_dir }/ansible-tower-setup-bundle-${setup_version}/roles/repos_el/vars/RedHat-7.yml"
+        dest: "./ansible-tower-setup-bundle-3.5.3-1.el7/roles/repos_el/vars/RedHat-7.yml"
         state: present
         regexp: '^    - rhui-REGION-rhel-server-rhscl'
         line: '    - rhel-server-rhui-rhscl-7-rpms'
@@ -39,7 +39,7 @@
     - name: Setup Ansible Tower 
       shell: "./setup.sh"
       args:
-        chdir: "${setup_dir}/ansible-tower-setup-bundle-${setup_version}"
+        chdir: "./ansible-tower-setup-bundle-3.5.3-1.el7"
       run_once: yes
 
 

@@ -67,3 +67,23 @@ output "lb_alb_zone_id" {
   description = "The Zone ID of Application Load Balancer"
   value       = "${module.aws_alb.lb_alb_zone_id}"
 }
+
+output "aws_acm_domain_validation_options" {
+  description = "List of information needed for Validation"
+  value       = "${module.aws_acm_certificate_tower.aws_acm_domain_validation_options}"
+}
+
+output "aws_acm_resource_record_name" {
+  description = "List of resource_record_name needed for Validation"
+  value       = "${module.aws_acm_certificate_tower.aws_acm_resource_record_name}"
+}
+
+output "aws_acm_resource_record_type" {
+  description = "List of resource_record_type needed for Validation"
+  value       = "${module.aws_acm_certificate_tower.aws_acm_resource_record_type}"
+}
+
+output "aws_acm_resource_record_value" {
+  description = "List of resource_record_value needed for Validation"
+  value       = "${module.aws_acm_certificate_tower.aws_acm_resource_record_value}"
+}
