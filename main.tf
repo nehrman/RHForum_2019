@@ -1,7 +1,7 @@
 module "aws_vpc" {
   source                        = "modules/terraform-aws-vpc"
   name                          = "test"
-  azs                           = ["eu-west-1a", "eu-west-1b", "eu-west-1c" ]
+  azs                           = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
   internet_gateway              = "true"
   single_nat_gateway            = "true"
   vpc_cidr_block                = "10.0.0.0/16"
@@ -56,7 +56,7 @@ module "aws_alb" {
   source          = "modules/terraform-aws-elbv2"
   name            = "rhforum-alb"
   security_groups = ["${module.aws_sg_alb.sg_id}"]
-  subnets         = ["${module.aws_vpc.public_subnets}"]
+  subnets         = ["${concat(module.aws_vpc.public_subnets, module.aws_vpc.private_subnets)}"]
 }
 
 module "aws_key_pair" {
@@ -220,7 +220,7 @@ module "aws_record_certs_tower" {
 }
 
 resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn = "${module.aws_acm_certificate_tower.aws_acm_cert_arn}"
+  certificate_arn         = "${module.aws_acm_certificate_tower.aws_acm_cert_arn}"
   validation_record_fqdns = ["${module.aws_record_certs_tower.record_fqdn}"]
 }
 
@@ -255,4 +255,3 @@ module "aws_tower_deployment" {
   global_admin_username = "ec2-user"
   id_rsa_path           = "/users/nicolas/.ssh/id_rsa_az"
 }
-
