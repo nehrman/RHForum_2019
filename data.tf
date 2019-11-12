@@ -13,3 +13,11 @@ data "aws_ami" "ami" {
 
   owners = ["309956199498"] # Red Hat
 }
+
+data "template_file" "config_ssh_target_host" {
+  template = "${file("${path.module}/templates/vault_ssh_ca_client.tpl")}"
+
+  vars {
+    vault_fqdn = "${module.aws_instance_vault.instance_private_dns[0]}"
+  }
+}

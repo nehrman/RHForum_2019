@@ -5,8 +5,8 @@ module "aws_vpc" {
   internet_gateway              = "true"
   single_nat_gateway            = "true"
   vpc_cidr_block                = "10.0.0.0/16"
-  vpc_public_subnet_cidr_block  = ["10.0.1.0/24", "10.0.2.0/24"]
-  vpc_private_subnet_cidr_block = ["10.0.10.0/24", "10.0.11.0/24"]
+  vpc_public_subnet_cidr_block  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  vpc_private_subnet_cidr_block = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24"]
 }
 
 module "aws_route53" {
@@ -56,7 +56,15 @@ module "aws_alb" {
   source          = "modules/terraform-aws-elbv2"
   name            = "rhforum-alb"
   security_groups = ["${module.aws_sg_alb.sg_id}"]
-  subnets         = ["${concat(module.aws_vpc.public_subnets, module.aws_vpc.private_subnets)}"]
+  subnets         = ["${module.aws_vpc.public_subnets}"]
+}
+
+module "aws_record_alb" {
+  source        = "modules/terraform-aws-route53-records"
+  zone_id       = "${module.aws_route53.dns_zone_id[0]}"
+  instance_name = ["alb"]
+  instance_ip   = ["${module.aws_alb.lb_alb_dns_name}"]
+  record_type   = "CNAME"
 }
 
 module "aws_key_pair" {
@@ -250,8 +258,79 @@ module "aws_listener_tower" {
 module "aws_tower_deployment" {
   source = "modules/terraform-ansible-tower"
 
-  aws_tower_hosts       = "${module.aws_instance_tower.instance_private_dns}"
-  aws_bastion_host      = "${module.aws_instance_bastion.instance_public_ip}"
+  tower_hosts       = "${module.aws_instance_tower.instance_private_dns}"
+  bastion_host      = "${module.aws_instance_bastion.instance_public_ip}"
   global_admin_username = "ec2-user"
   id_rsa_path           = "/users/nicolas/.ssh/id_rsa_az"
+  tower_license         = "${var.tower_license}"
+  tower_eula            = "${var.tower_eula}"
+}
+
+module "aws_instance_db" {
+  source = "modules/terraform-aws-instance"
+  ami    = "${data.aws_ami.ami.id}"
+
+  instance_tags = {
+    "Name" = "mssql"
+  }
+
+  vm_count                    = "1"
+  vpc_security_group_ids      = ["${module.aws_sg_app.sg_id}"]
+  subnet_id                   = "${module.aws_vpc.private_subnets[0]}"
+  key_name                    = "${module.aws_key_pair.key_name}"
+  associate_public_ip_address = false
+  user_data                   = "${data.template_file.config_ssh_target_host.rendered}"
+}
+
+module "aws_instance_eap" {
+  source = "modules/terraform-aws-instance"
+  ami    = "${data.aws_ami.ami.id}"
+
+  instance_tags = {
+    "Name" = "eap"
+  }
+
+  vm_count                    = "1"
+  vpc_security_group_ids      = ["${module.aws_sg_app.sg_id}"]
+  subnet_id                   = "${module.aws_vpc.private_subnets[0]}"
+  key_name                    = "${module.aws_key_pair.key_name}"
+  associate_public_ip_address = false
+  user_data                   = "${data.template_file.config_ssh_target_host.rendered}"
+}
+
+module "aws_sg_app" {
+  source      = "modules/terraform-aws-securitygroup"
+  name        = "rhforum_sg_app"
+  description = "Used by Applications Servers"
+  vpc_id      = "${module.aws_vpc.vpc_id}"
+
+  custom_security_rules = [{
+    "type"        = "egress"
+    "from_port"   = "0"
+    "to_port"     = "65535"
+    "protocol"    = "-1"
+    "description" = "Allow all"
+  },
+    {
+      "type"        = "ingress"
+      "from_port"   = "8080"
+      "to_port"     = "8080"
+      "protocol"    = "tcp"
+      "description" = "Access To EAP SErvers"
+    },
+    {
+      "type"        = "ingress"
+      "from_port"   = "1433"
+      "to_port"     = "1433"
+      "protocol"    = "tcp"
+      "description" = "Access To MSSQL Servers"
+    },
+    {
+      "type"        = "ingress"
+      "from_port"   = "22"
+      "to_port"     = "22"
+      "protocol"    = "tcp"
+      "description" = "SSH Access to App Servers"
+    },
+  ]
 }

@@ -265,5 +265,18 @@ vault write ssh-ca-client-signer/roles/rhforum2019 -<<"EOH"
 }
 EOH
 
+echo "# Create simple policy used by Ansible Tower"
+echo "--------------------------------------------"
+
+vault policy write ansible-tower-ssh-ca - << EOH
+
+path "ssh-ca-client-signer/sign/rhforum2019" {
+  capabilities = ["create", "update"]
+}
+
+EOH
+
+
+
 
 

@@ -16,25 +16,25 @@ variable "tower_setup_dir" {
   default     = "."
 }
 
-variable "aws_tower_hosts" {
+variable "tower_hosts" {
   description = "List of Tower Hosts"
   type        = "list"
   default     = []
 }
 
-variable "aws_isolated_hosts" {
+variable "isolated_hosts" {
   description = "List of Isolated Nodes"
   type        = "list"
   default     = []
 }
 
-variable "aws_postgresql_hosts" {
+variable "postgresql_hosts" {
   description = "List of PosqtgreSQL Hosts"
   type        = "list"
   default     = []
 }
 
-variable "aws_bastion_host" {
+variable "bastion_host" {
   description = "Defines the path to Ansible Tower Setup Directory"
   type        = "list"
   default     = []
@@ -44,6 +44,12 @@ variable "id_rsa_path" {
   description = "Defines the path to Ansible Tower Setup Directory"
   type        = "string"
   default     = "./id-rsa_az"
+}
+
+variable "tower_setup_admin_user" {
+  description = "Defines the administrator username used by Tower"
+  type        = "string"
+  default     = "admin"
 }
 
 variable "tower_setup_admin_password" {
@@ -74,4 +80,28 @@ variable "tower_setup_rabbitmq_pass" {
   description = "Defines the RabbitMQ password used by Tower"
   type        = "string"
   default     = "tower"
+}
+
+variable "tower_license" {
+  description = "Defines The license used by Tower"
+  type        = "map"
+  default     = {}
+}
+
+variable "tower_verify_ssl" {
+  description = "Defines if Certficiate validation should be done"
+  type        = "string"
+  default     = "false"
+}
+
+variable "tower_body_format" {
+  description = "Defines the body format used by Asnible URI module"
+  type        = "string"
+  default     = "json"
+}
+
+variable "tower_eula" {
+  description = "Defines the body format used by Asnible URI module"
+  type        = "map"
+  default     = {}
 }

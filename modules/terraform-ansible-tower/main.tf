@@ -4,11 +4,11 @@
 ##
 
 data "template_file" "ansible_tower_hosts" {
-  count    = "${length(var.aws_tower_hosts)}"
+  count    = "${length(var.tower_hosts)}"
   template = "${file("${path.module}/templates/tower_nodes.tpl")}"
 
   vars {
-    tower_hosts_name = "${element(var.aws_tower_hosts, count.index)}"
+    tower_hosts_name = "${element(var.tower_hosts, count.index)}"
   }
 }
 
@@ -18,11 +18,11 @@ data "template_file" "ansible_tower_hosts" {
 ##
 
 data "template_file" "ansible_tower_host" {
-  count    = "${length(var.aws_tower_hosts)}"
+  count    = "${length(var.tower_hosts)}"
   template = "${file("${path.module}/templates/tower_nodes.tpl")}"
 
   vars {
-    tower_hosts_name = "${element(var.aws_tower_hosts, 0)}"
+    tower_hosts_name = "${element(var.tower_hosts, 0)}"
   }
 }
 
@@ -31,11 +31,11 @@ data "template_file" "ansible_tower_host" {
 ## to be used as input for the Inventory template
 ##
 data "template_file" "ansible_isolated_hosts" {
-  count    = "${length(var.aws_isolated_hosts)}"
+  count    = "${length(var.isolated_hosts)}"
   template = "${file("${path.module}/templates/isolated_nodes.tpl")}"
 
   vars {
-    isolated_hosts_name = "${element(var.aws_isolated_hosts, count.index)}"
+    isolated_hosts_name = "${element(var.isolated_hosts, count.index)}"
   }
 }
 
@@ -44,11 +44,11 @@ data "template_file" "ansible_isolated_hosts" {
 ## to be used as input for the Inventory template
 ##
 data "template_file" "ansible_postgresql_hosts" {
-  count    = "${length(var.aws_postgresql_hosts)}"
+  count    = "${length(var.postgresql_hosts)}"
   template = "${file("${path.module}/templates/postgresql_nodes.tpl")}"
 
   vars {
-    postgresql_hosts_name = "${element(var.aws_postgresql_hosts, count.index)}"
+    postgresql_hosts_name = "${element(var.postgresql_hosts, count.index)}"
   }
 }
 
@@ -71,7 +71,7 @@ data "template_file" "ansible_groups" {
 }
 
 ##
-## here we assign Tower, Isolated and Postgresql nodes to the right GROUP
+## here we assign Tower nodes to the right GROUP
 ## 
 data "template_file" "ansible_tower_group" {
   template = "${file("${path.module}/templates/hosts.tpl")}"
@@ -131,12 +131,18 @@ resource "local_file" "ansible_cfg" {
 ## to be used as input for Ansible deployment
 ##
 data "template_file" "ansible_site" {
-  #  count      = "${var.az_consul_nb_instance}"
   template = "${file("${path.module}/templates/site.tpl")}"
 
   vars {
     setup_version = "${var.tower_setup_version}"
     setup_dir     = "${var.tower_setup_dir}"
+    tower_host_name = "${element(var.tower_hosts, 0)}"
+    tower_setup_admin_password = "${var.tower_setup_admin_password }"
+    tower_setup_admin_user = "${var.tower_setup_admin_user }"
+    tower_license = "${jsonencode(merge(var.tower_license,var.tower_eula))}"
+    tower_verify_ssl = "${var.tower_verify_ssl}"
+    tower_body_format = "${var.tower_body_format}"
+
   }
 }
 
@@ -168,7 +174,7 @@ resource "null_resource" "ansible_copy" {
 
     connection {
       type        = "ssh"
-      host        = "${var.aws_bastion_host[0]}"
+      host        = "${var.bastion_host[0]}"
       user        = "${var.global_admin_username}"
       private_key = "${file(var.id_rsa_path)}"
       insecure    = true
@@ -187,7 +193,7 @@ resource "null_resource" "ansible_ssh_id" {
 
     connection {
       type        = "ssh"
-      host        = "${var.aws_bastion_host[0]}"
+      host        = "${var.bastion_host[0]}"
       user        = "${ var.global_admin_username }"
       private_key = "${file(var.id_rsa_path)}"
       insecure    = true
@@ -204,7 +210,7 @@ resource "null_resource" "ansible_run" {
 
   connection {
     type        = "ssh"
-    host        = "${var.aws_bastion_host[0]}"
+    host        = "${var.bastion_host[0]}"
     user        = "${var.global_admin_username}"
     private_key = "${file(var.id_rsa_path)}"
     insecure    = true

@@ -42,4 +42,28 @@
         chdir: "${setup_dir}/ansible-tower-setup-bundle-${setup_version}"
       run_once: yes
 
+    - name: Waiting for Ansible Tower to become available
+      uri:
+        url: "https://${ tower_host_name }/api/v2/ping"
+        validate_certs: "${tower_verify_ssl}"
+        status_code: "200"
+      register: result
+      until: result.status == 200
+      retries: 60
+      delay: 1
+#
+#    - name: Adding License fo Ansible Tower
+#      uri:
+#        url: "https://${ tower_host_name }/api/v2/config/"
+#        user: "${tower_setup_admin_user}"
+#        password: "${tower_setup_admin_password}"
+#        validate_certs: "${tower_verify_ssl}"
+#        force_basic_auth: true
+#        headers:
+#          Content-Type: "application/json"
+#          Accept: "application/json"
+#        method: POST
+#        body: '${tower_license}'
+#        body_format: "${tower_body_format}"
+#
 
