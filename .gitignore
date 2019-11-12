@@ -3,3 +3,6 @@
 *.tfstate.backup
 *.tfvars
 *.yml
+/modules/terraform-ansible-tower/ansible/*.yml
+/modules/terraform-ansible-tower/ansible/inventory
+/modules/terraform-ansible-tower/ansible/hosts
