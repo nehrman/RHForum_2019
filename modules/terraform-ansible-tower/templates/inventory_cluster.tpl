@@ -1,17 +1,26 @@
 [tower]
-${tower_hosts_def} ansible_connection=local
+%{ for tower in tower_hosts_def ~}
+${tower}
+%{ endfor ~}
 
-[instances_group_isolated]
-${isolated_hosts_def}
+[isolated_group_isolated]
+%{ for isolated in isolated_hosts_def ~}
+${isolated}
+%{ endfor ~}
+
+[isolated_group_isolated]
+controller=tower
 
 [database]
-${postgresql_hosts_def}
+%{ for postgresql in postgresql_hosts_def ~}
+${postgresql}
+%{ endfor ~}
 
 [all:vars]
 admin_password='${tower_setup_admin_password}'
 
-pg_host=''
-pg_port=''
+pg_host='${postgresql_hosts_def}'
+pg_port='${postgresql_port}'
 
 pg_database='${tower_setup_pg_database}'
 pg_username='${tower_setup_pg_username}'

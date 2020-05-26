@@ -1,1 +1,0 @@
-${isolated_hosts_name}

@@ -1,2 +1,4 @@
 [tower]
-${tower_host_def}
+%{ for tower in tower_hosts_def ~}
+${tower}
+%{ endfor ~}

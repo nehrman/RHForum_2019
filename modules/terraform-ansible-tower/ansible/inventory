@@ -1,11 +1,7 @@
 [tower]
-ip-10-0-10-231.eu-west-1.compute.internal ansible_connection=local
-
-[instances_group_isolated]
-
+ip-10-0-10-145.eu-west-3.compute.internal ansible_connection=local
 
 [database]
-
 
 [all:vars]
 admin_password='tower'

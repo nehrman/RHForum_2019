@@ -30,7 +30,7 @@ set -e
 
 # Variables
 
-vault_version=${1:-'1.2.3'}
+vault_version=${1:-'1.4.1'}
 vault_enterprise=${2:-false}
 vault_path="/etc/vault.d"
 os_type=${3:-'linux_amd64'}

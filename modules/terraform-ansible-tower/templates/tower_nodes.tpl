@@ -1,1 +1,0 @@
-${tower_hosts_name}

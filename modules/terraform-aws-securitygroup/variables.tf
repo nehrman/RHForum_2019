@@ -1,24 +1,24 @@
 variable "name" {
   description = "The name of the security group"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "description" {
   description = "Describe your security group"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "vpc_id" {
   description = "The ID of the VPC"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "tags" {
   description = "Default tags used by any resources"
-  type        = "map"
+  type        = map
 
   default = {
     "Name"        = "RHForum2019"
@@ -28,15 +28,9 @@ variable "tags" {
   }
 }
 
-variable "cidr_blocks" {
-  description = "List of cidr_blocks"
-  type        = "list"
-  default     = ["0.0.0.0/0"]
-}
-
 variable "custom_security_rules" {
   description = "Lists of rules to configure security group"
-  type        = "list"
+  type        = list
 
   default = [
     {
@@ -45,6 +39,7 @@ variable "custom_security_rules" {
       to_port     = "22"
       protocol    = "tcp"
       description = "SSH access TFE"
+      cidr_blocks = "0.0.0.0/0"
     },
     {
       type        = "ingress"
@@ -52,6 +47,7 @@ variable "custom_security_rules" {
       to_port     = "80"
       protocol    = "tcp"
       description = "HTTP access Vault"
+      cidr_blocks = "0.0.0.0/0"
     },
     {
       type = "egress"
@@ -60,6 +56,7 @@ variable "custom_security_rules" {
       to_port     = "65535"
       protocol    = "-1"
       description = "Allow all"
+      cidr_blocks = "0.0.0.0/0"
     },
   ]
 }

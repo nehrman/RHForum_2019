@@ -1,60 +1,60 @@
 variable "vm_count" {
   description = "Count of Instances to deploy"
-  type        = "string"
+  type        = string
   default     = "1"
 }
 
 variable "ami" {
   description = "The ID of AMI"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "user_data" {
   description = "User Data used to configure the instance"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "instance_type" {
   description = "Defines the instance type"
-  type        = "string"
+  type        = string
   default     = "t2.medium"
 }
 
 variable "subnet_id" {
   description = "The ID of subnet where to deploy instance"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "associate_public_ip_address" {
   description = "Should be true if you want to have public IP address on your instance"
-  type        = "string"
+  type        = string
   default     = "true"
 }
 
 variable "vpc_security_group_ids" {
   description = "List of IDs for security groups"
-  type        = "list"
+  type        = list
   default     = []
 }
 
 variable "key_name" {
   description = "The name of the key pair"
-  type        = "string"
+  type        = string
   default     = ""
 }
 
 variable "monitoring" {
   description = "Should be true if you want to activate monitoring"
-  type        = "string"
+  type        = string
   default     = "false"
 }
 
 variable "root_block_device" {
   description = "Lists of root devices"
-  type        = "list"
+  type        = list(map(string))
 
   default = [
     {
@@ -66,7 +66,7 @@ variable "root_block_device" {
 
 variable "ebs_block_device" {
   description = "List of ebs block devices"
-  type        = "list"
+  type        = list(map(string))
 
   default = [
     {
@@ -75,8 +75,8 @@ variable "ebs_block_device" {
       snapshot_id           = ""
       volume_type           = ""
       volume_size           = "50"
-      iops                  = ""
-      encrypted             = ""
+      iops                  = 10
+      encrypted             = false
       kms_key_id            = ""
     },
   ]
@@ -84,7 +84,7 @@ variable "ebs_block_device" {
 
 variable "tags" {
   description = "Default tags used by any resources"
-  type        = "map"
+  type        = map
 
   default = {
     "owner"       = "nehrman"
@@ -95,7 +95,7 @@ variable "tags" {
 
 variable "instance_tags" {
   description = "Specific tags used by instances"
-  type        = "map"
+  type        = map
 
   default = {
     "Name" = "RHForum2019"
