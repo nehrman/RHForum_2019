@@ -7,7 +7,7 @@ variable "global_admin_username" {
 variable "tower_setup_version" {
   description = "Defines Ansible Tower Version to deploy"
   type        = string
-  default     = "3.5.3-1.el7"
+  default     = "3.8.2-1"
 }
 
 variable "tower_setup_dir" {
@@ -43,7 +43,7 @@ variable "bastion_host" {
 variable "id_rsa_path" {
   description = "Defines the path to Ansible Tower Setup Directory"
   type        = string
-  default     = "./id_rsa_az"
+  default     = "~/.ssh/id_rsa_az"
 }
 
 variable "tower_setup_admin_user" {

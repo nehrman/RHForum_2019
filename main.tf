@@ -317,9 +317,9 @@ module "aws_instance_tower" {
       delete_on_termination = "true"
       device_name           = "sdf"
       snapshot_id           = ""
-      volume_type           = ""
+      volume_type           = "io1"
       volume_size           = "50"
-      iops                  = null
+      iops                  = 100
       encrypted             = false
       kms_key_id            = ""
     }
@@ -390,9 +390,9 @@ module "aws_acm_certificate_tower" {
 module "aws_record_certs_tower" {
   source        = "./modules/terraform-aws-route53-records"
   zone_id       = module.aws_route53_public.public_dns_zone_id[0]
-  instance_name = [module.aws_acm_certificate_tower.aws_acm_resource_record_name]
-  instance_ip   = [module.aws_acm_certificate_tower.aws_acm_resource_record_value]
-  record_type   = module.aws_acm_certificate_tower.aws_acm_resource_record_type
+  instance_name = module.aws_acm_certificate_tower.aws_acm_resource_record_name
+  instance_ip   = module.aws_acm_certificate_tower.aws_acm_resource_record_value
+  record_type   = module.aws_acm_certificate_tower.aws_acm_resource_record_type[0]
 }
 
 resource "aws_acm_certificate_validation" "cert" {

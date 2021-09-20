@@ -18,12 +18,25 @@
         dest: "/root/"
         force: yes
       become: true
-
-    - name: Enabled Yum Repos
-      raw: "sudo yum-config-manager --enable rhui-REGION-rhel-server-extras"
+    
+    - name: Ersure Packages are Updated
+      yum:
+        name: '*'
+        state: "latest"
       become: true
 
-    - name: Installed Pre Reqs Packages
+    - name: Ensure Amazon RHUI Client is latest
+      yum:
+        name:
+          - rh-amazon-rhui-client
+        state: "latest"
+      become: true 
+
+    - name: Enabled Yum Repos
+      raw: "sudo yum-config-manager --enable rhel-7-server-rhui-extras-rpms --enable rhel-7-server-rhui-optional-rpms"
+      become: true
+
+    - name: Ensure ANsible is present
       yum:
         name: 
           - ansible 
@@ -45,13 +58,13 @@
         force: yes
       run_once: yes
     
-    - name: Patch Ansible Tower Roles to make it work on AWS EC2 with rhui
-      lineinfile: 
-        dest: "${setup_dir }/ansible-tower-setup-bundle-${setup_version}/roles/repos_el/vars/RedHat-7.yml"
-        state: present
-        regexp: '^    - rhui-REGION-rhel-server-rhscl'
-        line: '    - rhel-server-rhui-rhscl-7-rpms'
-      run_once: yes
+    #- name: Patch Ansible Tower Roles to make it work on AWS EC2 with rhui
+    #  lineinfile: 
+    #    dest: "${setup_dir }/ansible-tower-setup-bundle-${setup_version}/roles/repos_el/vars/RedHat-7.yml"
+    #    state: present
+    #    regexp: '^    - rhui-REGION-rhel-server-rhscl'
+    #    line: '    - rhel-server-rhui-rhscl-7-rpms'
+    #  run_once: yes
     
     - name: Setup Ansible Tower 
       shell: "./setup.sh"
@@ -70,18 +83,18 @@
       retries: 60
       delay: 1
 
-    - name: Adding License fo Ansible Tower
-      uri:
-        url: "https://${ tower_host_name }/api/v2/config/"
-        user: "${tower_setup_admin_user}"
-        password: "${tower_setup_admin_password}"
-        validate_certs: "${tower_verify_ssl}"
-        force_basic_auth: true
-        headers:
-          Content-Type: "application/json"
-          Accept: "application/json"
-        method: POST
-        body: '${tower_license}'
-        body_format: "${tower_body_format}"
+    #- name: Adding License fo Ansible Tower
+    #  uri:
+    #    url: "https://${ tower_host_name }/api/v2/config/"
+    #    user: "${tower_setup_admin_user}"
+    #    password: "${tower_setup_admin_password}"
+    #    validate_certs: "${tower_verify_ssl}"
+    #    force_basic_auth: true
+    #    headers:
+    #      Content-Type: "application/json"
+    #      Accept: "application/json"
+    #    method: POST
+    #    body: '${tower_license}'
+    #    body_format: "${tower_body_format}"
 
 

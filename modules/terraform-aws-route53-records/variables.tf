@@ -6,7 +6,7 @@ variable "zone_id" {
 
 variable "instance_name" {
   description = "List of Name which needs a record"
-  type        = list
+  type        = list(string)
   default     = []
 }
 
@@ -24,6 +24,6 @@ variable "record_ttl" {
 
 variable "instance_ip" {
   description = "List of IP addesses related to instances"
-  type        = list
+  type        = list(string)
   default     = []
 }

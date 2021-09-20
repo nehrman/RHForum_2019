@@ -13,7 +13,7 @@ echo "-----------------------------------------------------------------"
 sudo echo "" >> /etc/ssh/sshd_config
 sudo echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
 
-echo "# Restart SSHD Service to tkae chane into account"
+echo "# Restart SSHD Service to take change into account"
 echo "-------------------------------------------------"
 
 sudo systemctl restart sshd

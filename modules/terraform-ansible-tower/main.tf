@@ -117,7 +117,8 @@ resource "null_resource" "ansible_run" {
   provisioner "remote-exec" {
     inline = [
       "chmod 0600 ~/.ssh/id_rsa",
-      "sudo yum-config-manager --enable rhui-REGION-rhel-server-extras",
+      "sudo yum update -y",
+      "sudo yum-config-manager --enable rhel-7-server-rhui-extras-rpms --enable rhel-7-server-rhui-optional-rpms",
       "sudo yum install -y ansible",
       "sleep 30 && ansible-playbook -i ~/hosts ~/site.yml ",
     ]

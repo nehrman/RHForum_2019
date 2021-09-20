@@ -73,9 +73,9 @@ variable "ebs_block_device" {
       delete_on_termination = "true"
       device_name           = "sdf"
       snapshot_id           = ""
-      volume_type           = ""
+      volume_type           = "io1"
       volume_size           = "50"
-      iops                  = 10
+      iops                  = 100
       encrypted             = false
       kms_key_id            = ""
     },
